@@ -1,0 +1,44 @@
+@prefix : <https://univ-paris8.fr/onto/orientation#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://univ-paris8.fr/onto/orientation> a owl:Ontology ;
+    rdfs:label "Ontologie Université Paris 8 – Orientation et Itinéraires"@fr ;
+    rdfs:comment "Ontologie complète pour représenter bâtiments, salles, bureaux, personnes et itinéraires sur le campus"@fr .
+
+:Universite rdf:type owl:Class ; rdfs:label "Université"@fr .
+:Batiment rdf:type owl:Class ; rdfs:label "Bâtiment"@fr .
+:Salle rdf:type owl:Class ; rdfs:label "Salle"@fr .
+:Bureau rdf:type owl:Class ; rdfs:label "Bureau"@fr ; rdfs:subClassOf :Salle .
+:Departement rdf:type owl:Class ; rdfs:label "Département"@fr .
+:Personne rdf:type owl:Class ; rdfs:label "Personne"@fr .
+:Etudiant rdf:type owl:Class ; rdfs:label "Étudiant"@fr ; rdfs:subClassOf :Personne .
+:Professeur rdf:type owl:Class ; rdfs:label "Professeur"@fr ; rdfs:subClassOf :Personne .
+:Personnel rdf:type owl:Class ; rdfs:label "Personnel administratif"@fr ; rdfs:subClassOf :Personne .
+:Itineraire rdf:type owl:Class ; rdfs:label "Itinéraire"@fr .
+
+:estDans rdf:type owl:ObjectProperty ; rdfs:label "est dans"@fr ; rdfs:domain :Salle ; rdfs:range :Batiment .
+:seSitueA rdf:type owl:ObjectProperty ; rdfs:label "se situe à"@fr ; rdfs:domain :Batiment ; rdfs:range :Universite .
+:contient rdf:type owl:ObjectProperty ; rdfs:label "contient"@fr ; rdfs:domain :Batiment ; rdfs:range :Salle .
+:aPourBureau rdf:type owl:ObjectProperty ; rdfs:label "a pour bureau"@fr ; rdfs:domain :Personne ; rdfs:range :Bureau .
+:faitPartie rdf:type owl:ObjectProperty ; rdfs:label "fait partie"@fr ; rdfs:domain :Personne ; rdfs:range :Departement .
+:aPourDepart rdf:type owl:ObjectProperty ; rdfs:label "a pour départ"@fr ; rdfs:domain :Itineraire ; rdfs:range :Salle .
+:aPourDestination rdf:type owl:ObjectProperty ; rdfs:label "a pour destination"@fr ; rdfs:domain :Itineraire ; rdfs:range :Salle .
+:duree rdf:type owl:DatatypeProperty ; rdfs:label "durée en minutes"@fr ; rdfs:domain :Itineraire ; rdfs:range xsd:int .
+
+:Paris8 rdf:type :Universite ; rdfs:label "Université Paris 8 Vincennes – Saint-Denis"@fr .
+:Batiment_A rdf:type :Batiment ; rdfs:label "Bâtiment A – Administration"@fr ; :seSitueA :Paris8 ; :contient :Salle_A101, :Bureau_Secretaire .
+:Batiment_B rdf:type :Batiment ; rdfs:label "Bâtiment B – Informatique et Mathématiques"@fr ; :seSitueA :Paris8 ; :contient :Salle_B201, :Salle_B202, :Bureau_ProfDurand .
+:Salle_A101 rdf:type :Salle ; rdfs:label "Salle A101 – Accueil étudiants"@fr ; :estDans :Batiment_A .
+:Bureau_Secretaire rdf:type :Bureau ; rdfs:label "Bureau du Secrétaire"@fr ; :estDans :Batiment_A .
+:Salle_B201 rdf:type :Salle ; rdfs:label "Salle B201 – Laboratoire de programmation"@fr ; :estDans :Batiment_B .
+:Salle_B202 rdf:type :Salle ; rdfs:label "Salle B202 – Salle de cours"@fr ; :estDans :Batiment_B .
+:Bureau_ProfDurand rdf:type :Bureau ; rdfs:label "Bureau du Professeur Durand"@fr ; :estDans :Batiment_B .
+:Departement_Info rdf:type :Departement ; rdfs:label "Département Informatique"@fr .
+:ProfDupont rdf:type :Professeur ; rdfs:label "Professeur Dupont"@fr ; :faitPartie :Departement_Info ; :aPourBureau :Bureau_ProfDurand .
+:Etudiant_Hichem rdf:type :Etudiant ; rdfs:label "Hichem Saoud"@fr ; :faitPartie :Departement_Info .
+
+:Itineraire_A_B201 rdf:type :Itineraire ; rdfs:label "Trajet du Bâtiment A à la Salle B201"@fr ; :aPourDepart :Salle_A101 ; :aPourDestination :Salle_B201 ; :duree 5 .
+:Itineraire_B201_B202 rdf:type :Itineraire ; rdfs:label "Trajet Salle B201 à Salle B202"@fr ; :aPourDepart :Salle_B201 ; :aPourDestination :Salle_B202 ; :duree 2 .
