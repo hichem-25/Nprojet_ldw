@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Omeka S : Créer et gérer des items</title>
+<style>
+/* Styles généraux */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+  padding: 20px;
+  color: #333;
+}
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #222;
+}
+fieldset {
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 10px;
+  background: #fff;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+legend {
+  font-weight: 600;
+  padding: 0 10px;
+}
+label {
+  display: block;
+  margin: 10px 0 6px;
+  font-weight: 600;
+}
+input, textarea, select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+button {
+  padding: 10px 16px;
+  cursor: pointer;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+button:hover {
+  background: #0056b3;
+}
+.muted {
+  color: #666;
+  margin-top: 8px;
+  display: block;
+}
+pre {
+  background: #f7f7f7;
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+/* Liste des items */
+#itemList {
+  margin-top: 20px;
+}
+.item-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.item-card h4 {
+  margin: 0 0 6px;
+  color: #007bff;
+}
+.item-card p {
+  margin: 4px 0;
+  color: #555;
+}
+</style>
+</head>
+<body>
+
+<h2>Omeka S : Créer et gérer des items</h2>
+
+<fieldset>
+<legend>Créer un item</legend>
+<label>Titre</label>
+<input id="title" placeholder="Titre de l’item">
+
+<label>Description</label>
+<textarea id="description" rows="3" placeholder="Description…"></textarea>
+
+<label>Item Set ID</label>
+<input id="itemSetId" type="number" placeholder="ex: 1">
+
+<button id="btnCreate">Créer l’item</button>
+<span id="status" class="muted"></span>
+<pre id="rawOutput"></pre>
+</fieldset>
+
+<fieldset>
+<legend>Ajouter un média (audio / vidéo)</legend>
+<label>ID de l’item</label>
+<input id="mediaItemId" type="number" placeholder="ID de l’item créé ou existant">
+
+<label>Fichier audio / vidéo</label>
+<input id="mediaFile" type="file" accept="audio/*,video/*">
+
+<label>Label du média (optionnel)</label>
+<input id="mediaLabel" type="text" placeholder="Titre du média">
+
+<button id="btnAddMedia">Ajouter le média</button>
+<span id="mediaStatus" class="muted"></span>
+<pre id="rawMedia"></pre>
+</fieldset>
+
+<fieldset>
+<legend>Liste des items existants</legend>
+<button id="btnLoadItems">Charger les items</button>
+<div id="itemList" class="muted">Les items apparaîtront ici…</div>
+</fieldset>
+
+<script>
+const API_BASE = 'http://localhost/omeka-s/api';
+const KEY_ID = 'CkRbaJ8hFbW3bYAPbzTsevISzDu7SIw6';
+const KEY_SECRET = 'b4aJFLVNtOvqUBVzxomHOgrEmwd5UxLc';
+
+const $ = sel => document.querySelector(sel);
+
+function buildApiUrl(path){
+  const url = new URL(API_BASE + path);
+  url.searchParams.set('key_identity', KEY_ID);
+  url.searchParams.set('key_credential', KEY_SECRET);
+  return url.toString();
+}
+
+async function apiPost(path, body){
+  const res = await fetch(buildApiUrl(path), {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch { data = text; }
+  if(!res.ok) throw new Error(text);
+  return data;
+}
+
+async function apiPostForm(path, formData){
+  const res = await fetch(buildApiUrl(path), { method:'POST', body:formData });
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch { data = text; }
+  if(!res.ok) throw new Error(text);
+  return data;
+}
+
+// Création d'item
+$('#btnCreate').addEventListener('click', async ()=>{
+  $('#status').textContent = 'Envoi…';
+  $('#rawOutput').textContent = '';
+  try {
+    const title = $('#title').value.trim();
+    const description = $('#description').value.trim();
+    const itemSetId = $('#itemSetId').value.trim();
+    if(!title) throw new Error('Le titre est requis.');
+    if(!itemSetId) throw new Error('Item Set ID requis.');
+
+    const payload = {
+      "o:item_set":[{"o:id":Number(itemSetId)}],
+      "dcterms:title":[{"type":"literal","property_id":"auto","@value":title}],
+      "dcterms:description": description ? [{"type":"literal","property_id":"auto","@value":description}] : []
+    };
+
+    const created = await apiPost('/items', payload);
+    $('#status').textContent = 'Créé ✔︎ ID = ' + (created['o:id'] || '???');
+    $('#rawOutput').textContent = JSON.stringify(created,null,2);
+  } catch(e){
+    $('#status').textContent = 'Erreur : ' + e.message;
+  }
+});
+
+// Ajout média
+$('#btnAddMedia').addEventListener('click', async ()=>{
+  $('#mediaStatus').textContent = 'Envoi du média…';
+  $('#rawMedia').textContent = '';
+  try {
+    const itemId = $('#mediaItemId').value.trim();
+    const fileInput = $('#mediaFile');
+    const label = $('#mediaLabel').value.trim();
+
+    if(!itemId) throw new Error("Indique l'ID de l’item.");
+    if(!fileInput.files.length) throw new Error('Choisis un fichier audio ou vidéo.');
+
+    const file = fileInput.files[0];
+    const mediaData = {
+      "o:item": { "o:id": Number(itemId) },
+      "o:ingester": "upload",
+      "file_index": 0,
+      "o:is_public": true
+    };
+    if(label) mediaData["dcterms:title"] = [{ "type":"literal", "property_id":"auto", "@value": label }];
+
+    const fd = new FormData();
+    fd.append('data', JSON.stringify(mediaData));
+    fd.append('file[0]', file);
+
+    const createdMedia = await apiPostForm('/media', fd);
+    $('#mediaStatus').textContent = 'Média ajouté ✔︎ ID = ' + (createdMedia['o:id'] || '???');
+    $('#rawMedia').textContent = JSON.stringify(createdMedia,null,2);
+  } catch(e){
+    $('#mediaStatus').textContent = 'Erreur : ' + e.message;
+  }
+});
+
+// Lecture items existants
+$('#btnLoadItems').addEventListener('click', async ()=>{
+  const container = $('#itemList');
+  container.textContent = 'Chargement…';
+  $('#rawOutput').textContent = '';
+
+  try {
+    const params = new URLSearchParams();
+    params.set('per_page','50'); // limite à 50 items
+    const data = await apiGet('/items?' + params.toString());
+
+    if(!Array.isArray(data) || !data.length){
+      container.textContent = 'Aucun item trouvé.';
+      return;
+    }
+
+    const rows = data.map(it=>{
+      const title = it['dcterms:title']?.[0]?.['@value'] || '(sans titre)';
+      const desc = it['dcterms:description']?.[0]?.['@value'] || '';
+      const updated = String(it['o:modified'] || it['o:created'] || '');
+      return `<div class="item-card">
+        <h4>${title}</h4>
+        <p>${desc}</p>
+        <p><strong>ID:</strong> ${it['o:id']}</p>
+        <p><em>Modifié:</em> ${updated.replace('T',' ').replace('Z','')}</p>
+      </div>`;
+    }).join('');
+
+    container.innerHTML = rows;
+    $('#rawOutput').textContent = JSON.stringify(data, null, 2);
+
+  } catch(e){
+    container.textContent = 'Erreur : ' + e.message;
+  }
+});
+
+// utilitaire GET
+async function apiGet(path){
+  const res = await fetch(buildApiUrl(path));
+  if(!res.ok) throw new Error(`GET ${res.status} ${res.statusText}`);
+  return res.json();
+}
+</script>
+
+</body>
+</html>

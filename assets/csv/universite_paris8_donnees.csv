@@ -1,0 +1,12 @@
+dcterms:title,dcterms:type,appartientA,estDans,aPourBureau,aPourDepart,aPourDestination,duree,dcterms:description
+Université Paris 8,Université,"","","","","","","Université de Paris 8 Saint-Denis"
+Bâtiment A,Bâtiment,"Université Paris 8","","","","","","Bâtiment principal avec salles de cours"
+Bâtiment B,Bâtiment,"Université Paris 8","","","","","","Bâtiment informatique et administratif"
+Salle A101,Salle,"","Bâtiment A","","","","","Salle de cours licence informatique"
+Salle B201,Salle,"","Bâtiment B","","","","","Salle de TD de traitement du signal"
+Bureau Prof Durand,Bureau,"","Bâtiment B","","","","","Bureau du Professeur Durand"
+Département Info,Département,"Université Paris 8","","","","","","Département Informatique"
+Professeur Durand,Professeur,"Département Info","","Bureau Prof Durand","","","","Enseignant en Réseaux et Systèmes"
+Étudiant Saoud,Étudiant,"Département Info","","","","","","Étudiant en Master 2 Signal et Image"
+Itinéraire A101_B201,Itinéraire,"","","","Salle A101","Salle B201","5","Chemin entre les deux salles principales"
+Itinéraire B201_BureauDurand,Itinéraire,"","","","Salle B201","Bureau Prof Durand","3","Itinéraire entre la salle et le bureau"
