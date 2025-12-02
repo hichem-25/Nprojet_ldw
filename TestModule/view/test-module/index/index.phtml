@@ -1,5 +1,89 @@
-<h1>Interface du module TestModule</h1>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Modifier la description d’une salle</title>
+<style>
+body { font-family: Arial; background: #f2f2f2; padding: 20px; }
+fieldset { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+label { display: block; margin: 10px 0 5px; font-weight: bold; }
+input, textarea { width: 100%; padding: 8px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+button { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; background-color: #007bff; color: #fff; transition: 0.2s; }
+button:hover { background-color: #0056b3; }
+#statusMessage { margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 6px; }
+#statusMessage.success { background-color: #d4edda; color: #155724; }
+#statusMessage.error { background-color: #f8d7da; color: #721c24; }
+</style>
+</head>
+<body>
 
-<p>Bienvenue dans la page d'administration de votre module.</p>
+<h1>Modifier la description d’une salle</h1>
 
-<p>Vous pouvez mettre ici des boutons, des formulaires, du texte, etc.</p>
+<fieldset>
+<legend>Mettre à jour la description</legend>
+
+<label>ID de l’item :</label>
+<input id="itemId" type="number" placeholder="ex: 1">
+
+<label>Nouvelle description :</label>
+<textarea id="roomDescription" rows="3" placeholder="Écris ici le statut ou commentaire…"></textarea>
+
+<button id="btnUpdate">Mettre à jour</button>
+
+<div id="statusMessage"></div>
+</fieldset>
+
+<script>
+const API_BASE = "http://localhost/omk_thyp_25-26_clone/api";
+const KEY_ID = "CkRbaJ8hFbW3bYAPbzTsevISzDu7SIw6";
+const KEY_SECRET = "b4aJFLVNtOvqUBVzxomHOgrEmwd5UxLc";
+
+function apiUrl(path) {
+    if (!path.startsWith("/")) path = "/" + path;
+    const url = new URL(API_BASE + path);
+    url.searchParams.set("key_identity", KEY_ID);
+    url.searchParams.set("key_credential", KEY_SECRET);
+    return url.toString();
+}
+
+document.getElementById("btnUpdate").onclick = async () => {
+    const itemId = document.getElementById("itemId").value.trim();
+    const newDesc = document.getElementById("roomDescription").value.trim();
+    const statusDiv = document.getElementById("statusMessage");
+
+    if (!itemId || !newDesc) {
+        statusDiv.textContent = "ID et description requis !";
+        statusDiv.className = "error";
+        return;
+    }
+
+    try {
+        // 1️⃣ Récupérer l'item existant
+        const res = await fetch(apiUrl(`/items/${itemId}`));
+        const item = await res.json();
+
+        // 2️⃣ Modifier seulement la description
+        item["dcterms:description"] = [
+            { "type": "literal", "property_id": "auto", "@value": newDesc }
+        ];
+
+        // 3️⃣ Envoyer le PUT complet
+        const putRes = await fetch(apiUrl(`/items/${itemId}`), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item)
+        });
+
+        const text = await putRes.text();
+        statusDiv.textContent = "Description mise à jour ✔︎";
+        statusDiv.className = "success";
+        console.log("Réponse API :", text);
+    } catch (e) {
+        statusDiv.textContent = `Erreur : ${e.message}`;
+        statusDiv.className = "error";
+    }
+};
+</script>
+
+</body>
+</html>

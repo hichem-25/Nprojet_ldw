@@ -1,13 +1,18 @@
 <?php
+namespace TestModule;
+
+use Laminas\Router\Http\Literal;
+use Laminas\ServiceManager\Factory\InvokableFactory;
+
 return [
     'navigation' => [
-        'AdminModule' => [
+        'Admin' => [
             [
                 'label' => 'Test Module',
                 'route' => 'admin/test-module',
-                'controller' => 'TestModule\Controller\Index',
+                'controller' => Controller\IndexController::class,
                 'action' => 'index',
-                'resource' => 'TestModule\Controller\Index',
+                'resource' => Controller\IndexController::class,
                 'privilege' => 'view',
             ],
         ],
@@ -15,21 +20,19 @@ return [
 
     'controllers' => [
         'factories' => [
-            TestModule\Controller\IndexController::class => function ($container) {
-                return new TestModule\Controller\IndexController();
-            },
+            Controller\IndexController::class => InvokableFactory::class,
         ],
     ],
 
     'router' => [
         'routes' => [
             'admin/test-module' => [
-                'type' => \Laminas\Router\Http\Literal::class,
+                'type' => Literal::class,
                 'options' => [
                     'route' => '/admin/test-module',
                     'defaults' => [
                         '__NAMESPACE__' => 'TestModule\Controller',
-                        'controller' => 'Index',
+                        'controller' => Controller\IndexController::class,
                         'action' => 'index',
                     ],
                 ],
